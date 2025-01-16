@@ -1,0 +1,18 @@
+#!/bin/bash
+
+FILE=mesa-24.08.1/install
+
+# Check if the file exists
+if [ ! -f "$FILE" ]; then
+    echo "Error: File '$FILE' does not exist."
+    exit 1
+fi
+
+# Define the block to be commented out
+START_PATTERN='if  \[ \${EUID:-\$(id -u)\} -eq 0 \];'
+END_PATTERN='^fi$'
+
+# Use sed to comment out the block
+sed -i "/$START_PATTERN/,/$END_PATTERN/ s/^/#/" "$FILE"
+
+echo "did it"

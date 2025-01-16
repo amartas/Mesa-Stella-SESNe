@@ -84,16 +84,6 @@ NumThreads = eval(config["MAIN"]["NumThreads"])
 SimlistName = config["MAIN"]["SimlistName"]
 TimeoutTime = eval(config["MAIN"]["TimeoutTime"])
 
-# OBJECT
-mu = eval(config["OBJECT"]["DistMod"])
-bandlist = config["OBJECT"]["FittingBands"]
-bandlist = bandlist.replace(" ", "").split(",")
-LCPath = config["OBJECT"]["LC_Path"]
-jd0 = eval(config["OBJECT"]["JD_Explosion"]) # if I could turn back the hands of time...
-reddening = eval(config["OBJECT"]["Reddening"])
-tpt = eval(config["OBJECT"]["t_PT"])
-s1 = eval(config["OBJECT"]["s1"])
-
 # Define observed data globals
 obsinfo = {}
 obsinds = {}

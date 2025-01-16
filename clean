@@ -1,0 +1,5 @@
+#!/bin/bash
+
+rm -rf $MESA_DIR/ModelGrids/M*
+
+echo "Cleaned model grid directory"

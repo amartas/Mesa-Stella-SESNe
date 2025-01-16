@@ -1,0 +1,14 @@
+! inlist_mass_Z
+
+&star_job
+   new_Z = PLACEHOLDER
+/ ! end of star_job namelist
+
+&kap
+   Zbase = PLACEHOLDER
+/ ! end of kap namelist
+
+&controls
+   initial_z = PLACEHOLDER
+   initial_mass = PLACEHOLDER
+/ ! end of controls namelist

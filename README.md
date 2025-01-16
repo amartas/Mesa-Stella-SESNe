@@ -10,7 +10,7 @@ The main component is within ```MesaStellaCore.py```.  This script reads the con
 
 Make sure you have Docker installed on your system.  Read the installation guidelines for your system here: https://docs.docker.com/engine/install/
 
-Once you have Docker installed, clone this repo to a directory of your choice with ```git clone https://github.com/amartas/Mesa-Stella-SESNe.git```.  Then, create a docker container with ```docker build -t <name>:latest```.  Docker will run through the Dockerfile and build the container.  You can enter the container with ```docker run -it <name>:latest```, and get to your simulations!  The primary Mesa directory is held within ```~/MESA``` alongside my scripts for grid-building.
+Once you have Docker installed, clone this repo to a directory of your choice with ```git clone https://github.com/amartas/Mesa-Stella-SESNe.git```.  Then, create a docker container with ```docker build -t <name>:latest .```.  Docker will run through the Dockerfile and build the container.  You can enter the container with ```docker run -it <name>:latest```, and get to your simulations!  The primary Mesa directory is held within ```~/MESA``` alongside my scripts for grid-building.
 
 ### How to create model grids
 

@@ -16,7 +16,7 @@ Once you have Docker installed, clone this repo to a directory of your choice wi
 
 The primary text editor is Nano.  Use ```nano <file name>``` to open the editor.
 
-#### Photometry
+#### Photometry - Currently unnecessary
 As an input, you need to give your photometry points in either g, r, or i.  (I may update this to include more at a later date).  This input file is a .csv that *must* meet the following specifications:
 
 You must have:

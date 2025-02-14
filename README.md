@@ -28,17 +28,7 @@ You must have:
 There can be no NaN or empty values in the CSV.  I suggest using Pandas to create this file.
 
 #### Simlist
-As another input, you need the actual parameters of the models you wish to create.  Currently, the core script supports:
-
-- Progenitor ZAMS mass ($M_\odot$)
-- Explosion energy (in $10^{50}$ ergs)
-- CSM velocity (km/s)
-- CSM mass loss rate ($M_\odot$/year)
-- Duration of the mass loss (years)
-- The Dutch wind scaling factor $\eta$ (This is zero by default - if you want to strip envelopes, increase this value)
-- Whether the simulation has CSM (Boolean: 1 True, 0 False)
-
-The core script reads another CSV with this information.  It must meet the following specifications:
+As another input, you need the actual parameters of the models you wish to create, within a CSV.  It must meet the following specifications:
 
 You must have columns:
 - ```mass```: float, ZAMS mass ($M_\odot$)

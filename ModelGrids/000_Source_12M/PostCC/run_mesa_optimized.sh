@@ -11,7 +11,7 @@ export PATH="$PATH:$MESA_DIR/scripts/shmesa"
 # Run make first, then run MESA
 scripts=(
     mk
-    rn
+    rn_optim
 )
 
 # Run

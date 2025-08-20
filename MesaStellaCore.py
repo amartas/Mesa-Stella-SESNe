@@ -265,7 +265,7 @@ class Sim:
         if self.CSMOptimize == True:
             
             shutil.copy(os.path.join(InputDir, "PreCSM.mod"),
-                        os.path.join(self.TheSourceDir, "PostCC/shock_part4.mod")
+                        os.path.join(self.simdir, "PostCC/shock_part4.mod")
                         )
             
             logger.info("Copied CSM acclerator model")

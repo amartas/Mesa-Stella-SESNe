@@ -337,6 +337,16 @@ class Sim:
             115,
             self.alpha_semiconv
             )
+        ConfigInlist(
+            os.path.join(self.simdir, "PostCC/inlist_common"),
+            88,
+            self.alpha_MLT
+            )
+        ConfigInlist(
+            os.path.join(self.simdir, "PostCC/inlist_common"),
+            92,
+            self.alpha_semiconv
+            )
         
         ### Configure inlists for the post-CC MESA model
         
@@ -592,7 +602,7 @@ class Sim:
         files = files[sind]
         
         nzones = len(ReadProfile(files[0]))
-        mname = f"Model_H_{self.dirname}" if homologous else f"Model_{self.dirname}"
+        mname = f"Model_H_{self.dirname}.h5" if homologous else f"Model_{self.dirname}.h5"
 
         ExportDir = os.path.join(DataDir, self.GridTag)
 

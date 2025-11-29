@@ -9,6 +9,11 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import partial
 import logging
 import time
+import glob
+from io import StringIO
+import re
+import h5py
+from scipy.optimize import curve_fit as curve_fit
 
 
 
@@ -494,11 +499,145 @@ class Sim:
             logger.error(f"Invalid simulation type '{simtype}' was passed to RunSim")
             raise InvalidSimType("Invalid simulation type - is it 'PreCC', 'PostCC', or 'Stella'?")
     
-    def ExportData(self):
+    def ExportProfile(self, homologous=False):
+        # Columns in the Stella model snapshot
+        cols = [
+                "index",
+                "cell_mass",
+                "cell_center_mass",
+                "radius",
+                "velocity",
+                "density",
+                "rad_pressure",
+                "temperature",
+                "rad_temperature",
+                "opacity",
+                "tau",
+                "outer_mass",
+                "outer_radius",
+                "h1",
+                "he3",
+                "he4",
+                "c12",
+                "n14",
+                "o16",
+                "ne20",
+                "na23",
+                "mg24",
+                "si28",
+                "s32",
+                "ar36",
+                "ca40",
+                "ti44",
+                "cr48",
+                "cr60",
+                "fe52",
+                "fe54",
+                "fe56",
+                "co56",
+                "ni56",
+                "luminosity",
+                "n_bar",
+                "n_e"
+                ]
+        def ReadProfile(fn):
+            with open(fn, "r") as f:
+                lines = f.readlines()
+            
+            # find header
+            for i, line in enumerate(lines):
+                if "mass of cell" in line:
+                    header_line_index = i
+                    break
+
+            data_lines = lines[header_line_index + 1:]
+            df = pd.read_csv(
+                StringIO("".join(data_lines)),
+                sep="\s+",
+                names=cols,
+                engine="python"
+            )
+            df.set_index("index", inplace=True)
+            return df
         
+        resdir = os.path.join(self.simdir, "PostCC/stella/res")        
+        os.chdir(resdir)
+    
+        # Get profiles and corresponding days
+        files = np.array(glob.glob("mesa.day*_post_Lbol_max.data"))
+        days = np.array([])
+        for f in files:
+            m = re.search(r"day(\d+(?:\.\d+)?)_post", f)
+            if m:
+                val = float(m.group(1))
+                days = np.append(days, val)
+        
+        # Sort for convenience
+        sind = np.argsort(days)
+        days = days[sind]
+        files = files[sind]
+        
+        nzones = len(ReadProfile(files[0]))
+        mname = f"Model_H_{self.dirname}" if homologous else f"Model_{self.dirname}"
+
+        ExportDir = os.path.join(DataDir, self.GridTag)
+
+        if os.path.exists(ExportDir) == False:
+            os.mkdir(ExportDir)
+
+        fn = os.path.join(ExportDir, mname)
+        
+        if os.path.exists(fn):
+            logger.warning(f"The h5 file {fn} already exists, I will skip and not overwrite")
+            return
+        
+        f = h5py.File(fn, mode="a")
+        
+        # actual time and the homologous time
+        times = f.create_dataset("time", (len(days),), dtype="f")
+        times[:] = days
+        times_homologous = f.create_dataset("time_homologous", (len(days),), dtype="f")
+        homologous_dev = f.create_dataset("homologous_deviation", (len(days),), dtype="f")
+        
+        # create datasets
+        for col in cols[1:]: # Ignore index column
+            f.create_dataset(col, (len(days), nzones), dtype="f")
+        
+        # add the data from the Stella model snapshots
+        for i in range(len(files)):
+            file = files[i]
+            day = days[i]
+            df = ReadProfile(file)
+            rad = df["radius"].to_numpy()
+            velo = df["velocity"].to_numpy()
+            
+            def HExpansion(r, t):
+                return r / t
+            popt, _ = curve_fit(HExpansion, rad, velo, p0=(day*3600*24))
+            time_homol = popt[0]
+            times_homologous[i] = time_homol / 3600 / 24 # to days
+            
+            # Enforce homologous expansion if requested
+            if homologous:
+                v_homo = rad / time_homol
+                
+                # Find the accumulated deviation from homologous expansion
+                accerr = np.trapezoid(abs(velo - v_homo), x=rad)
+                acc = np.trapezoid(v_homo, x=rad)
+                dev = accerr / acc
+                
+                homologous_dev[i] = dev
+                df["velocity"] = v_homo
+            
+            for col in cols[1:]:
+                f[col][:] = df[col].to_numpy()
+        
+        logger.info(f"Exported {self.simdir} to {fn}")
+        
+    def ExportPhotometry(self):
         datapath = os.path.join(self.simdir, "PostCC/stella/res/mesa.tt")
         
-        # This searches mesa.tt for the CSV header, finds it, and then only interprets it and the subsequent lines as a data table.
+        # This searches mesa.tt for the CSV header, finds it, and then only interprets it and the subsequent lines as a data table
         csvstr = "time           Tbb         vFe        Teff      Rlast_sc   R(tau2/3)    Mbol     MU      MB      MV      MI      MR   Mbolavg  gdepos"
         with open(datapath, "r") as file:
             for linenum, line in enumerate(file):
@@ -516,16 +655,16 @@ class Sim:
             for band in ["u", "g", "r", "i", "z"]:
                 data[band] = BandConv(data, band)
             
-            GridDir = os.path.join(DataDir, self.GridTag)
+            ExportDir = os.path.join(DataDir, self.GridTag)
             
-            if os.path.exists(GridDir) == False:
-                os.mkdir(GridDir)
+            if os.path.exists(ExportDir) == False:
+                os.mkdir(ExportDir)
             
-            fpfinal = os.path.join(GridDir, f"Data_{self.dirname}.csv")
+            fpfinal = os.path.join(ExportDir, f"Phot_{self.dirname}.csv")
             data.to_csv(fpfinal)
-            logger.info(f"Exported simulation data from '{self.simdir}'")
+            logger.info(f"Exported photometry from '{self.simdir}'")
         else:
-            logger.error("An error occured within ExportData; the data header may not have been found")
+            logger.error("An error occured within ExportPhotometry; the data header may not have been found")
 
 class TimeoutException(Exception):
     pass
@@ -572,9 +711,9 @@ for index, row in Simlist.iterrows():
         
         Simarr = np.append(Simarr, sim1)
         
-        sim1.MakeSource()
+        #sim1.MakeSource()
             
-        sim1.CreateSim()
+        #sim1.CreateSim()
         logger.info(f"Created simulation with index {index}")
         
         # If CSM optimization is off:
@@ -582,13 +721,13 @@ for index, row in Simlist.iterrows():
             # And if progenitor optimization is off, run PreCC.  Otherwise, skip it since we're optimizing with CSM or the progenitor
             if ProgOptimize != True:
                 logger.info("------------- Running pre-core-collapse model -------------")
-                sim1.RunSim("PreCC")
+                #sim1.RunSim("PreCC")
                 logger.info("------------- Finished pre-core-collapse model -------------")
         
         if ProgOptimize == True:
             logger.info("Progenitor optimization is true.  Skipping pre-CC modeling.")
         logger.info("------------- Running post-core-collapse model -------------")
-        sim1.RunSim("PostCC")
+        #sim1.RunSim("PostCC")
         logger.info("------------- Finished pre-core-collapse model -------------")
     except Exception as err:
         logger.error(f"An exception occured while running simulation with index {index}; Exception: {err}")
@@ -603,7 +742,7 @@ logger.info("------------- Finished MESA simulations -------------")
 results = []
 Executor = ProcessPoolExecutor
 
-logger.info("------------- Beginning Stella sl------------")
+logger.info("------------- Beginning Stella simulations ------------")
 
 with Executor(max_workers=NumThreads) as executor:
     # Submit tasks for each instance
@@ -620,9 +759,13 @@ with Executor(max_workers=NumThreads) as executor:
 
 for sim in Simarr:
     try:
-        sim.ExportData()
+        sim.ExportPhotometry()
     except Exception as err:
-        logger.info(f"Data exporting threw an exception: {err}")
+        logger.warning(f"Photometry exporting threw an exception: {err}")
+    try:
+        sim.ExportProfile()
+    except Exception as err:
+        logger.warning(f"Profile exporting threw an exception: {err}")
 
 
 logger.info("------------- Finished Stella simulations.  Done! -------------")

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # BEGIN BLOCK
-export MESA_DIR="/home/entropian/Documents/Mesa-Stella-IIP/mesa-24.08.1"
-export OMP_NUM_THREADS=25
-export MESASDK_ROOT="/home/entropian/mesasdk"
+export MESA_DIR="/root/MESA/mesa-24.08.1"
+export OMP_NUM_THREADS=30
+export MESASDK_ROOT="/root/mesasdk"
 source "$MESASDK_ROOT/bin/mesasdk_init.sh"
 export PATH="$PATH:$MESA_DIR/scripts/shmesa"
 # END BLOCK

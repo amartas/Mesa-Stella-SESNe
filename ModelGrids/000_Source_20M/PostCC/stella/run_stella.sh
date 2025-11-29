@@ -12,6 +12,7 @@ export PATH="$PATH:$MESA_DIR/scripts/shmesa"
 # Run Stella
 scripts=(
     rn
+    res/stella_extras
 )
 
 # Run

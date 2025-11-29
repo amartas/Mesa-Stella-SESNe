@@ -43,7 +43,7 @@ program main
       bb_magU, bb_magB, bb_magV, bb_magR, bb_magI
    integer :: nm, num_models, cnt, k_phot, iday
 
-   my_mesa_dir = '../..'
+   my_mesa_dir = '../../../../../'
    call const_init(my_mesa_dir,ierr)     
 	if (ierr /= 0) then
 	   write(*,*) 'const_init failed'
@@ -559,7 +559,7 @@ program main
       write(fname,'(a)') trim(filestr)// '.day' // trim(daystr) // '_post_Lbol_max.data'
       open(io,file=trim(fname), status='unknown')
 
-      write(io,'(a20,f25.1)') 'days post max Lbol', day
+      write(io,'(a30,f25.1, f25.1)') 'days post max Lbol at t0', day, t0
       write(io,'(a20,i25)') 'zones', zone
       write(io,'(a20,2(1p,e25.15))') 'inner boundary mass', mass_IB*msun, mass_IB
       write(io,'(a20,2(1p,e25.15))') 'total mass', star_mass*msun, star_mass

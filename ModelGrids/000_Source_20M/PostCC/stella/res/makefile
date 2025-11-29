@@ -2,7 +2,7 @@
 #################################################################
 
 
-MESA_DIR = ../..
+#MESA_DIR = ../..
 
 include $(MESA_DIR)/utils/makefile_header
 

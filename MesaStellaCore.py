@@ -116,12 +116,14 @@ class InvalidSimType(Exception):
     pass
 
 class Sim:
-    def __init__(self, mass, energy, ni56, windscalar, metallicity, HeFrac, csmtime, csmrate, csmvelo, CSMOptimize, ProgOptimize, gridtag):
+    def __init__(self, mass, energy, ni56, windscalar, alpha_MLT, alpha_semiconv, metallicity, HeFrac, csmtime, csmrate, csmvelo, CSMOptimize, ProgOptimize, gridtag):
         # Non-CSM parameters
         self.mass = mass
         self.energy = energy
         self.ni56 = ni56
         self.windscalar = windscalar
+        self.alpha_MLT = alpha_MLT
+        self.alpha_semiconv = alpha_semiconv
         self.metallicity = metallicity
         self.HeFrac = HeFrac
         self.ProgOptimize = ProgOptimize
@@ -322,6 +324,18 @@ class Sim:
             os.path.join(self.simdir, "PreCC/inlist_mass_Z_wind_rotation"),
             16,
             self.windscalar
+            )
+        
+        # Mixing length + Ledoux criterion
+        ConfigInlist(
+            os.path.join(self.simdir, "PreCC/inlist_common"),
+            96,
+            self.alpha_MLT
+            )
+        ConfigInlist(
+            os.path.join(self.simdir, "PreCC/inlist_common"),
+            115,
+            self.alpha_semiconv
             )
         
         ### Configure inlists for the post-CC MESA model
@@ -690,6 +704,8 @@ for index, row in Simlist.iterrows():
     metallicity = row["metallicity"]
     HeFrac = row["hefrac"]
     windscalar = row["windscalar"]
+    alpha_MLT = row["alpha_MLT"]
+    alpha_semiconv = row["alpha_semiconv"]
     ProgOptimize = True if row["progoptimize"] == 1 else False
     
     # CSM parameters
@@ -707,13 +723,13 @@ for index, row in Simlist.iterrows():
     signal.alarm(TimeoutTime)
     
     try:
-        sim1 = Sim(mass, energy, Ni56, windscalar, metallicity, HeFrac, csmtime, csmrate, csmvelo, CSMOptimize, ProgOptimize, GridTag)
+        sim1 = Sim(mass, energy, Ni56, windscalar, alpha_MLT, alpha_semiconv, metallicity, HeFrac, csmtime, csmrate, csmvelo, CSMOptimize, ProgOptimize, GridTag)
         
         Simarr = np.append(Simarr, sim1)
         
-        #sim1.MakeSource()
+        sim1.MakeSource()
             
-        #sim1.CreateSim()
+        sim1.CreateSim()
         logger.info(f"Created simulation with index {index}")
         
         # If CSM optimization is off:
@@ -721,13 +737,13 @@ for index, row in Simlist.iterrows():
             # And if progenitor optimization is off, run PreCC.  Otherwise, skip it since we're optimizing with CSM or the progenitor
             if ProgOptimize != True:
                 logger.info("------------- Running pre-core-collapse model -------------")
-                #sim1.RunSim("PreCC")
+                sim1.RunSim("PreCC")
                 logger.info("------------- Finished pre-core-collapse model -------------")
         
         if ProgOptimize == True:
             logger.info("Progenitor optimization is true.  Skipping pre-CC modeling.")
         logger.info("------------- Running post-core-collapse model -------------")
-        #sim1.RunSim("PostCC")
+        sim1.RunSim("PostCC")
         logger.info("------------- Finished pre-core-collapse model -------------")
     except Exception as err:
         logger.error(f"An exception occured while running simulation with index {index}; Exception: {err}")

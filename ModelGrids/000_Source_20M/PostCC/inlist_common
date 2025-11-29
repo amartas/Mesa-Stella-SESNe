@@ -86,11 +86,11 @@ use_Skye = .false.
    xa_scale = 1d-5
    solver_itermin = 2
 
-   mixing_length_alpha = 1.5
+   mixing_length_alpha = PLACEHOLDER
    MLT_option = 'none'
 
    use_Ledoux_criterion = .true.
-   alpha_semiconvection = 0.01
+   alpha_semiconvection = PLACEHOLDER
    thermohaline_coeff = 2
    thermohaline_option = 'Kippenhahn'
 

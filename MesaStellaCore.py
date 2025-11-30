@@ -162,7 +162,9 @@ class Sim:
         f"M{self.mass}_" # Mass
         f"Z{self.metallicity}_" # Metallicity
         f"He{self.HeFrac}_" # Helium mass fraction
-        f"Eta{self.windscalar}" # Wind scaling factor    
+        f"Eta{self.windscalar}" # Wind scaling factor
+        f"AlMLT{self.alpha_MLT}" # MLT parameter
+        f"AlSC{self.alpha_semiconv}" # Semiconvection parameter
         ".mod"
         )
         

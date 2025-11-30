@@ -86,6 +86,7 @@ config.read("SetupConfig.cfg")
 User = config["MAIN"]["User"]
 MesaSDKDir = config["MAIN"]["MesaSDK_Dir"]
 NumThreads = eval(config["MAIN"]["NumThreads"])
+SimThreads = eval(config["MAIN"]["SimThreads"])
 SimlistName = config["MAIN"]["SimlistName"]
 TimeoutTime = eval(config["MAIN"]["TimeoutTime"])
 
@@ -202,7 +203,7 @@ class Sim:
         if User == "root":  
             env = (
             f'export MESA_DIR="{mesadir}"\n'
-            f'export OMP_NUM_THREADS={NumThreads}\n'
+            f'export OMP_NUM_THREADS={SimThreads}\n'
             f'export MESASDK_ROOT="/root/mesasdk"\n'
             'source "$MESASDK_ROOT/bin/mesasdk_init.sh"\n'
             'export PATH="$PATH:$MESA_DIR/scripts/shmesa"'
@@ -210,7 +211,7 @@ class Sim:
         else:
             env = (
             f'export MESA_DIR="{mesadir}"\n'
-            f'export OMP_NUM_THREADS={NumThreads}\n'
+            f'export OMP_NUM_THREADS={SimThreads}\n'
             f'export MESASDK_ROOT="{MesaSDKDir}"\n'
             'source "$MESASDK_ROOT/bin/mesasdk_init.sh"\n'
             'export PATH="$PATH:$MESA_DIR/scripts/shmesa"'
@@ -694,9 +695,9 @@ class TimeoutException(Exception):
     pass
 
 def signal_handler(signum, frame):
-    raise TimeoutException("")
+    raise TimeoutException("Stage timed out")
 
-
+r"""
 # Import params from simlist
 Simlist = pd.read_csv(os.path.join(InputDir, SimlistName))
 
@@ -770,7 +771,7 @@ Executor = ProcessPoolExecutor
 
 logger.info("------------- Beginning Stella simulations ------------")
 
-with Executor(max_workers=NumThreads) as executor:
+with Executor(max_workers=SimThreads) as executor:
     # Submit tasks for each instance
     futures = {executor.submit(partial(sim.RunSim, "Stella")) for sim in Simarr}
 
@@ -797,7 +798,7 @@ for sim in Simarr:
 logger.info("------------- Finished Stella simulations.  Done! -------------")
 
 
-
+"""
 
 
 

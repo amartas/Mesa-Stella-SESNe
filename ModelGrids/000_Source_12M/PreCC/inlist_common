@@ -148,16 +148,16 @@
       overshoot_zone_type(1) = 'burn_H'
       overshoot_zone_loc(1) = 'core'
       overshoot_bdy_loc(1) = 'top'
-      overshoot_f(1) = 0.345 ! for M>10
+      overshoot_f(1) = 0.02 ! for M>10
       !overshoot_f(1) = 0.21 ! For M<10 
-      overshoot_f0(1) = 0.01
+      overshoot_f0(1) = 0.005
 
   ! exponential in the H core
       overshoot_scheme(2) = 'exponential'
       overshoot_zone_type(2) = 'burn_He'
       overshoot_zone_loc(2) = 'core'
       overshoot_bdy_loc(2) = 'top'
-      overshoot_f(2) = 0.01
+      overshoot_f(2) = 0.02
       overshoot_f0(2) = 0.005
 
      ! we don't want to deal with He/CO core mergers 
@@ -171,12 +171,12 @@
    ! a small amount of overshooting on top of any other convective core
    ! avoid spurious numerical behavior
    ! perfect amount for degenerate flames
-      overshoot_scheme(4) = 'exponential'
-      overshoot_zone_type(4) = 'any'
-      overshoot_zone_loc(4) = 'any'
-      overshoot_bdy_loc(4) = 'any'
-      overshoot_f(4) = 0.005d0
-      overshoot_f0(4) = 0.001d0
+      !overshoot_scheme(4) = 'exponential'
+      !overshoot_zone_type(4) = 'any'
+      !overshoot_zone_loc(4) = 'any'
+      !overshoot_bdy_loc(4) = 'any'
+      !overshoot_f(4) = 0.005d0
+      !overshoot_f0(4) = 0.001d0
 
 
 ! timesteps

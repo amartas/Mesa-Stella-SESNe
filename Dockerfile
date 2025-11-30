@@ -62,6 +62,7 @@ RUN cd ~/MESA && \
     mkdir DataExports && \
     mkdir ProgOptimize && \
     chmod -R 777 $MESA_DIR/ModelGrids/000*
+    chmod +x ~/MESA/clean
 
 # Add the interactive requirement back
 RUN sed -i '1i [ -z "$PS1" ] && return' $HOME/.bashrc

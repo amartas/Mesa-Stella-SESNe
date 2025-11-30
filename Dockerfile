@@ -61,7 +61,7 @@ RUN cd ~/MESA && \
     mkdir Logs && \
     mkdir DataExports && \
     mkdir ProgOptimize && \
-    chmod -R 777 $MESA_DIR/ModelGrids/000*
+    chmod -R 777 $MESA_DIR/ModelGrids/000* && \
     chmod +x ~/MESA/clean
 
 # Add the interactive requirement back

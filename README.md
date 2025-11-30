@@ -2,7 +2,7 @@
 A set of Python scripts for creating and running MESA+Stella model grids for stripped-envelope supernovae.
 
 ## How it works
-The main component is within ```MesaStellaCore.py```.  This script reads the configuration file ```SetupConfig.cfg``` and an input simlist (```InputFiles/simlist.csv``` by default), then creates a set of MESA and Stella simulation grids with the parameters specified within the simlist.  It then runs the MESA simulations with a user-defined thread count.  Once the MESA sims finish, it runs the Stella component of the simulations in parallel, each on its own thread.  Stella has limited parallelization, so this really speeds up the process.  Output data is held within ```ModelGrids```, though CSVs of some output data are exported to ```DataExports```.
+The main logic behind the gridding is ```MesaStellaCore.py```.  This script reads the configuration file ```SetupConfig.cfg``` and an input simlist (```InputFiles/simlist.csv``` by default), then creates a set of MESA and Stella simulation grids with the parameters specified within the simlist.  ```Scheduler.py``` then runs the MESA simulations.  After completing the MESA sims, it runs the Stella component of the simulations in parallel, each on its own thread.  Stella has limited parallelization, so this really speeds up the process.  The full output data is held within ```mesa-24.08.1/ModelGrids```, though photometry and various explosion profiles are saved to ```DataExports```.
 
 ## Getting Started
 
@@ -14,29 +14,19 @@ Once you have Docker installed, clone this repo to a directory of your choice wi
 
 ### How to create model grids
 
-The primary text editor is Nano.  Use ```nano <file name>``` to open the editor.
-
-#### Photometry - Currently unnecessary
-As an input, you need to give your photometry points in either g, r, or i.  (I may update this to include more at a later date).  This input file is a .csv that *must* meet the following specifications:
-
-You must have:
-- A column ```jd``` that contains the Julian date of the photometry point, in float form
-- A column ```mag``` that contains the *apparent* magnitude of the photometry point, in float form
-- A column ```magerr``` that contains the *apparent* magnitude error of the photometry point, in float form
-- A column ```filter``` that contains the filter used for that photometry point as a string (no quotes).  This can be any filter, but the core script will only read ones labeled "g", "r", or "i", for Gaia *gri* bandpasses.
-
-There can be no NaN or empty values in the CSV.  I suggest using Pandas to create this file.
+The primary text editor is nano.  Use ```nano <file name>``` to open the editor.
 
 #### Simlist
-As another input, you need the actual parameters of the models you wish to create, within a CSV.  It must meet the following specifications:
+To define your grid, you need the actual parameters of the models you wish to create, formatted as a CSV.  The CSV must have the following columns:
 
-You must have columns:
 - ```mass```: float, ZAMS mass ($M_\odot$)
 - ```energy```: float, explosion energy ($10^{50}$ ergs)
 - ```windscalar```: float, Dutch wind scaling factor $\eta$
 - ```metallicity```: float, metal mass fraction
 - ```hefrac```: float, helium mass fraction
 - ```ni56```: float, Ni56 mass ($M_\odot$)
+- ```alpha_MLT```: float, $\alpha_\mathrm{MLT}$, which is a parameter used in mixing length calculations
+- ```alpha_semiconv```: float, $\alpha_\mathrm{sc}$, which is a parameter used for semiconvective mixing
 - ```csmvelo```: float, CSM velocity (km/s)
 - ```csmrate```: float, CSM mass loss rate ($M_\odot$/yr)
 - ```csmtime```: float, CSM mass loss duration (yr)
@@ -60,5 +50,5 @@ Open ```SetupConfig.cfg``` with the text editor of your choice and fill in your 
 
 ### Running the models
 
-You should have everything set up now!  All you need to do now is run ```MesaStellaCore.py``` in the Python environment from earlier, and it'll start chugging along!  Some data is exported in the form of a CSV to ```DataExports```, but all the output data is stored in subdirectories within ```mesa-24.08.1/ModelGrids```.  Go read the MESA documentation to learn to read it!  Make sure to move these sims somewhere else *outside* the parent directory, as ```MesaStellaCore.py``` will *not* overwrite these sims if you are rerunning with identical input parameters, throwing an error.
+You should have everything set up now!  All you need to do now is run ```MesaStellaCore.py``` in the Python environment from earlier, and it'll start chugging along!  Explosion profiles and the light curves are exported to ```DataExports```, but all the output data is stored in subdirectories within ```mesa-24.08.1/ModelGrids```.  Go read the MESA documentation to learn to read it!  Make sure to move these sims somewhere else *outside* the parent directory, as ```MesaStellaCore.py``` will *not* overwrite these sims if you are rerunning with identical input parameters.
 

@@ -27,7 +27,7 @@ class ResourceScheduler:
     def AcquireResources(self, mem_cost, thread_cost):
         with self.cond:
             # wait until resources are available
-            while ((self.used_memory + mem_cost > self.mem_limit) |
+            while ((self.used_memory + mem_cost > self.mem_limit) or
                    (self.used_threads + thread_cost > self.thread_limit)):
                 self.cond.wait()
             # alloc
@@ -108,8 +108,8 @@ def BuildSims():
                   metallicity, HeFrac, csmtime, csmrate, csmvelo,
                   CSMOptimize, ProgOptimize, GridTag)
 
-        sim.MakeSource()
-        sim.CreateSim()
+        #sim.MakeSource()
+        #sim.CreateSim()
         sims.append(sim)
 
     logger.info(f"Created {len(sims)} simulation directories")
@@ -184,13 +184,13 @@ def RunMesaScheduled(
     logger.info("All MESA stages completed, ready to run Stella")
     return sims
 
+def RunStella(sim):
+    sim.RunSim("Stella")
+    sim.ExportPhotometry()
+    sim.ExportProfile()
+
 def RunExplosion(sims):
     logger.info("------------- Beginning Stella simulations ------------")
-
-    def RunStella(sim):
-        sim.RunSim("Stella")
-        sim.ExportPhotometry()
-        sim.ExportProfile()
 
     results = []
     with ProcessPoolExecutor(max_workers=NumThreads) as executor:
@@ -215,29 +215,5 @@ sims = RunMesaScheduled(
         per_sim_threads=SimThreads,
     )
 RunExplosion(sims)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

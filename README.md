@@ -2,7 +2,7 @@
 A set of Python scripts for creating and running MESA+Stella model grids for stripped-envelope supernovae.
 
 ## How it works
-The main logic behind the gridding is ```MesaStellaCore.py```.  This script reads the configuration file ```SetupConfig.cfg``` and an input simlist (```InputFiles/simlist.csv``` by default), then creates a set of MESA and Stella simulation grids with the parameters specified within the simlist.  ```Scheduler.py``` then runs the MESA simulations.  After completing the MESA sims, it runs the Stella component of the simulations in parallel, each on its own thread.  Stella has limited parallelization, so this really speeds up the process.  The full output data is held within ```mesa-24.08.1/ModelGrids```, though photometry and various explosion profiles are saved to ```DataExports```.
+The main logic behind the gridding is ```MesaStellaCore.py```.  This script reads the configuration file ```SetupConfig.cfg``` and an input simlist (```InputFiles/simlist.csv``` by default), then creates a set of MESA and Stella simulation grids with the parameters specified within the simlist.  ```Scheduler.py``` handles running the grid, starting with the MESA simulations.  After completing the MESA sims, it runs the Stella component of the sims in parallel, each on its own thread.  Stella has limited parallelization, so this really speeds up the process.  The full output data is held within ```mesa-24.08.1/ModelGrids```, though photometry and various explosion profiles are saved to ```DataExports```.
 
 ## Getting Started
 
@@ -50,5 +50,5 @@ Open ```SetupConfig.cfg``` with the text editor of your choice and fill in your 
 
 ### Running the models
 
-You should have everything set up now!  All you need to do now is run ```MesaStellaCore.py``` in the Python environment from earlier, and it'll start chugging along!  Explosion profiles and the light curves are exported to ```DataExports```, but all the output data is stored in subdirectories within ```mesa-24.08.1/ModelGrids```.  Go read the MESA documentation to learn to read it!  Make sure to move these sims somewhere else *outside* the parent directory, as ```MesaStellaCore.py``` will *not* overwrite these sims if you are rerunning with identical input parameters.
+You should have everything set up now!  All you need to do now is run ```Scheduler.py``` in the Python environment from earlier, and it'll start chugging along!  Explosion profiles and the light curves are exported to ```DataExports```, but all the output data is stored in subdirectories within ```mesa-24.08.1/ModelGrids```.  Go read the MESA documentation to learn to read it!  Make sure to move these sims somewhere else *outside* the parent directory, as those sims will *not* be overwritten if you are rerunning with identical input parameters.
 

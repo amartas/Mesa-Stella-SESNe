@@ -657,7 +657,7 @@ class Sim:
                 df["velocity"] = v_homo
             
             for col in cols[1:]:
-                f[col][:] = df[col].to_numpy()
+                f[col][i, :] = df[col].to_numpy()
         
         logger.info(f"Exported {self.simdir} to {fn}")
         

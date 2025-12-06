@@ -108,8 +108,8 @@ def BuildSims():
                   metallicity, HeFrac, csmtime, csmrate, csmvelo,
                   CSMOptimize, ProgOptimize, GridTag)
 
-        #sim.MakeSource()
-        #sim.CreateSim()
+        sim.MakeSource()
+        sim.CreateSim()
         sims.append(sim)
 
     logger.info(f"Created {len(sims)} simulation directories")

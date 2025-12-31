@@ -142,7 +142,7 @@
       D_omega_mixing_across_convection_boundary = .false.
 
 ! we use step overshooting in H core
-      overshoot_scheme(1) = 'exponential'
+      overshoot_scheme(1) = 'PLACEHOLDER'
       overshoot_zone_type(1) = 'burn_H'
       overshoot_zone_loc(1) = 'core'
       overshoot_bdy_loc(1) = 'top'
@@ -150,7 +150,7 @@
       overshoot_f0(1) = PLACEHOLDER
 
   ! exponential above He core
-      overshoot_scheme(2) = 'exponential'
+      overshoot_scheme(2) = 'PLACEHOLDER'
       overshoot_zone_type(2) = 'burn_He'
       overshoot_zone_loc(2) = 'core'
       overshoot_bdy_loc(2) = 'top'
@@ -158,7 +158,7 @@
       overshoot_f0(2) = PLACEHOLDER
 
   ! exponential above H burning shell
-      overshoot_scheme(3) = 'exponential'
+      overshoot_scheme(3) = 'PLACEHOLDER'
       overshoot_zone_type(3) = 'burn_H'
       overshoot_zone_loc(3) = 'shell'
       overshoot_bdy_loc(3) = 'top'

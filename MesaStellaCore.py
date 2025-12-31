@@ -121,16 +121,17 @@ class InvalidSimType(Exception):
 class Sim:
     def __init__(self,
         mass,
+        windscalar,
+        metallicity,
+        hefrac,
         energy,
         ni56,
-        windscalar,
         alpha_noH,
         alpha_H,
+        alpha_semiconv,
+        CO_mthd,
         CO_f,
         CO_f0,
-        alpha_semiconv,
-        metallicity,
-        HeFrac,
         csmtime,
         csmrate,
         csmvelo,
@@ -145,7 +146,7 @@ class Sim:
         self.ni56 = ni56 # Nickel produced in explosion
         self.windscalar = windscalar # Dutch wind scaling factor
         self.metallicity = metallicity # Metallicity
-        self.HeFrac = HeFrac # Helium mass fraction
+        self.hefrac = hefrac # Helium mass fraction
         
         # MLT parameters + semiconvection
         self.alpha_noH = alpha_noH # MLT mixing alpha for H-rich regions
@@ -153,8 +154,18 @@ class Sim:
         self.alpha_semiconv = alpha_semiconv # Semiconvection mixing parameter
         
         # Convective overshoot
-        self.CO_f = CO_f # Convective overshoot parameter f
+        self.CO_mthd = CO_mthd # CO method (none, step, exponential)
+        self.CO_f = CO_f # CO parameter f
         self.CO_f0 = CO_f0 # CO parameter f0
+        
+        if CO_mthd == "none":
+            self.mthdint = 0
+        elif CO_mthd == "step":
+            self.mthdint = 1
+        elif CO_mthd == "exponential":
+            self.mthdint = 2
+        else:
+            raise ValueError("Convective overshoot method invalid (none, step, exponential)")
         
         # CSM parameters
         self.csmtime = csmtime # Mass loss duration
@@ -170,18 +181,21 @@ class Sim:
         self.TheSourceDir = SourceDir # Which source directory
         
         dirname =(
-        f"M{self.mass}_" # Mass
-        f"E{self.energy}_" # Energy
-        f"Ni{self.ni56}_" # Nickel
-        f"Z{self.metallicity}_" # Metallicity
-        f"He{self.HeFrac}_" # Helium mass fraction
-        f"Eta{self.windscalar}_" # Wind scaling factor
-        f"AlH{self.alpha_H}_" # MLT mixing alpha for H-rich regions
-        f"AlC{self.alpha_noH}" # MLT mixing alpha for H-poor regions
-        f"AlSC{self.alpha_semiconv}" # Semiconvection mixing parameter
-        f"WT{self.csmtime}_" # Mass loss duration
-        f"WR{self.csmrate}_" # Mass loss rate
-        f"WV{self.csmvelo}" # Velocity of lost mass
+        f"M{self.mass}_"
+        f"E{self.energy}_"
+        f"Ni{self.ni56}_"
+        f"Z{self.metallicity}_"
+        f"He{self.hefrac}_"
+        f"Eta{self.windscalar}_"
+        f"AlH{self.alpha_H}_"
+        f"AlC{self.alpha_noH}"
+        f"AlSC{self.alpha_semiconv}"
+        f"COf{self.CO_f}_"
+        f"COff{self.CO_f0}_"
+        f"COMTH{self.mthdint}_"
+        f"WT{self.csmtime}_"
+        f"WR{self.csmrate}_"
+        f"WV{self.csmvelo}"
         )
         self.dirname = dirname
         self.simdir = os.path.join(GridDir, dirname)
@@ -189,13 +203,14 @@ class Sim:
         self.premodname =(
         f"M{self.mass}_"
         f"Z{self.metallicity}_"
-        f"He{self.HeFrac}_"
+        f"He{self.hefrac}_"
         f"Eta{self.windscalar}_"
         f"AlH{self.alpha_H}_"
         f"AlC{self.alpha_noH}_"
         f"AlSC{self.alpha_semiconv}_"
         f"COf{self.CO_f}_"
-        f"COff{self.CO_f0}"
+        f"COff{self.CO_f0}_"
+        f"COMTH{self.mthdint}"
         ".mod"
         )
         
@@ -343,7 +358,7 @@ class Sim:
         ConfigInlist(
             os.path.join(self.simdir, "PreCC/inlist_mass_Z_wind_rotation"),
             15,
-            self.HeFrac
+            self.hefrac
             )
         
         # Mass
@@ -393,7 +408,7 @@ class Sim:
             )
         
         # Convective overshoot
-        
+        f_mthd_lines = [144, 152, 160]
         f_lines = [148, 156, 164]
         f0_lines = [149, 157, 165]
         
@@ -409,6 +424,13 @@ class Sim:
                 os.path.join(self.simdir, "PreCC/inlist_common"),
                 f0,
                 self.CO_f0
+                )
+            
+        for mthd in f_mthd_lines:
+            ConfigInlist(
+                os.path.join(self.simdir, "PreCC/inlist_common"),
+                mthd,
+                self.CO_mthd
                 )
         
         ### Configure inlists for the post-CC MESA model

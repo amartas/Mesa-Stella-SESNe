@@ -27,7 +27,7 @@ To define your grid, you need the actual parameters of the models you wish to cr
 
 ##### Convection
 - ```alpha_H```: float, $\alpha_{\mathrm{MLT},H}$; controls mixing in H-rich regions where $X_H\geq0.5$
-- ```alpha_noH```: float, same as ```alpha_H``` but for H-poor regions where $X_H\leq0.5$
+- ```alpha_noH```: float, same as ```alpha_H``` but for H-poor regions where $X_H<0.5$
 - ```alpha_semiconv```: float, $\alpha_\mathrm{sc}$, which is a parameter used for semiconvective mixing
 - ```CO_mthd```: string, either ```step```, ```exponential```, or ```none```.  See the MESA documentation on convective overshooting for details
 - ```CO_f```: float, $f_\mathrm{ov}$; controls the extent of the overshooting region

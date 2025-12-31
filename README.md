@@ -14,22 +14,34 @@ Once you have Docker installed, clone this repo to a directory of your choice wi
 
 ### How to create model grids
 
-The primary text editor is nano.  Use ```nano <file name>``` to open the editor.
+The primary text editor is nano.  Use ```nandddddddddddo <file name>``` to open the editor.
 
 #### Simlist
 To define your grid, you need the actual parameters of the models you wish to create, formatted as a CSV.  The CSV must have the following columns:
 
+##### Base parameters
 - ```mass```: float, ZAMS mass ($M_\odot$)
-- ```energy```: float, explosion energy ($10^{50}$ ergs)
-- ```windscalar```: float, Dutch wind scaling factor $\eta$
 - ```metallicity```: float, metal mass fraction
 - ```hefrac```: float, helium mass fraction
-- ```ni56```: float, Ni56 mass ($M_\odot$)
+- ```windscalar```: float, Dutch wind scaling factor $\eta$
+
+##### Convection
 - ```alpha_MLT```: float, $\alpha_\mathrm{MLT}$, which is a parameter used in mixing length calculations
 - ```alpha_semiconv```: float, $\alpha_\mathrm{sc}$, which is a parameter used for semiconvective mixing
+- ```CO_mthd```: string, either ```step```, ```exponential```, or ```none```.  See the MESA documentation on convective overshooting for details
+- ```CO_f```: float, $f_\mathrm{ov}$; controls the extent of the overshooting region in pressure scale heights
+- ```CO_f0```: float, $f_{\mathrm{ov},0}$; convective overshoot offset in pressure scale heights
+
+##### Explosion
+- ```energy```: float, explosion energy ($10^{50}$ ergs)
+- ```ni56```: float, Ni56 mass ($M_\odot$)
+
+##### CSM
 - ```csmvelo```: float, CSM velocity (km/s)
 - ```csmrate```: float, CSM mass loss rate ($M_\odot$/yr)
 - ```csmtime```: float, CSM mass loss duration (yr)
+
+##### Other
 - ```progoptimize```: logical 1 or 0, enables progenitor optimization
 - ```csmoptimize```: logical 1 or 0, enables CSM optimization
 - ```gridtag```: string, identifier for different sets of models; exported data will be saved under this name in ```DataExports```

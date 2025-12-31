@@ -6,7 +6,7 @@ import configparser
 import subprocess
 import signal
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from functools import partialdddd
+from functools import partial
 import logging
 import time
 import glob

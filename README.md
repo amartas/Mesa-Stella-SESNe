@@ -2,7 +2,7 @@
 A set of Python scripts for creating and running MESA+Stella model grids for stripped-envelope supernovae.
 
 ## How it works
-The main logic behind the gridding is ```MesaStellaCore.py```.  This script reads the configuration file ```SetupConfig.cfg``` and an input simlist (```InputFiles/simlist.csv``` by default), then creates a set of MESA and Stella simulation grids with the parameters specified within the simlist.  ```Scheduler.py``` handles running the grid, starting with the MESA simulations.  After completing the MESA sims, it runs the Stella component of the sims in parallel, each on its own thread.  Stella has limited parallelization, so this really speeds up the process.  The full output data is held within ```mesa-24.08.1/ModelGrids```, though photometry and various explosion profiles are saved to ```DataExports```.
+The main logic behind the gridding is ```MesaStellaCore.py```.  This script reads the configuration file ```SetupConfig.cfg``` and an input simlist (```InputFiles/simlist.csv``` by default), then creates a set of MESA and Stella simulation grids with the parameters specified within the simlist.  ```Scheduler.py``` handles running the grid, starting with the MESA simulations.  After completing the MESA sims, it runs the Stella component of the sims in parallel, each on its own thread.  Stella has limited parallelization, so this really speeds up the process.  The full output data are held within ```mesa-24.08.1/ModelGrids```, though photometry and various explosion profiles are saved to ```DataExports```.
 
 ## Getting Started
 

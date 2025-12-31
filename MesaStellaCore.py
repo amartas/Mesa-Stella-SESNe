@@ -6,7 +6,7 @@ import configparser
 import subprocess
 import signal
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from functools import partial
+from functools import partialdddd
 import logging
 import time
 import glob
@@ -73,8 +73,8 @@ StellaLogger.addHandler(StellaFileHandler)
 MainDir = os.path.dirname(os.path.realpath(__file__))
 GridDir = os.path.join(MainDir, "mesa-24.08.1/ModelGrids/")
 ProgOptimizeDir = os.path.join(MainDir, "ProgOptimize")
-SourceDir_12M = os.path.join(GridDir, "000_Source_12M")
-SourceDir_20M = os.path.join(GridDir, "000_Source_20M")
+SourceDir = os.path.join(GridDir, "000_Source")
+#SourceDir_20M = os.path.join(GridDir, "000_Source_20M")
 DataDir = os.path.join(MainDir, "DataExports")
 InputDir = os.path.join(MainDir, "InputFiles")
 
@@ -88,6 +88,8 @@ MesaSDKDir = config["MAIN"]["MesaSDK_Dir"]
 NumThreads = eval(config["MAIN"]["NumThreads"])
 SimThreads = eval(config["MAIN"]["SimThreads"])
 SimlistName = config["MAIN"]["SimlistName"]
+SimMemory = eval(config["MAIN"]["SimMemory"])
+TotMemory = eval(config["MAIN"]["TotMemory"])
 TimeoutTime = eval(config["MAIN"]["TimeoutTime"])
 
 # Define observed data globals
@@ -117,32 +119,55 @@ class InvalidSimType(Exception):
     pass
 
 class Sim:
-    def __init__(self, mass, energy, ni56, windscalar, alpha_MLT, alpha_semiconv, metallicity, HeFrac, csmtime, csmrate, csmvelo, CSMOptimize, ProgOptimize, gridtag):
-        # Non-CSM parameters
-        self.mass = mass
-        self.energy = energy
-        self.ni56 = ni56
-        self.windscalar = windscalar
-        self.alpha_MLT = alpha_MLT
-        self.alpha_semiconv = alpha_semiconv
-        self.metallicity = metallicity
-        self.HeFrac = HeFrac
-        self.ProgOptimize = ProgOptimize
+    def __init__(self,
+        mass,
+        energy,
+        ni56,
+        windscalar,
+        alpha_noH,
+        alpha_H,
+        CO_f,
+        CO_f0,
+        alpha_semiconv,
+        metallicity,
+        HeFrac,
+        csmtime,
+        csmrate,
+        csmvelo,
+        CSMOptimize,
+        ProgOptimize,
+        gridtag
+        ):
+        
+        # Base stellar parameters
+        self.mass = mass # Mass
+        self.energy = energy # Energy
+        self.ni56 = ni56 # Nickel produced in explosion
+        self.windscalar = windscalar # Dutch wind scaling factor
+        self.metallicity = metallicity # Metallicity
+        self.HeFrac = HeFrac # Helium mass fraction
+        
+        # MLT parameters + semiconvection
+        self.alpha_noH = alpha_noH # MLT mixing alpha for H-rich regions
+        self.alpha_H = alpha_H # MLT mixing alpha for H-poor regions
+        self.alpha_semiconv = alpha_semiconv # Semiconvection mixing parameter
+        
+        # Convective overshoot
+        self.CO_f = CO_f # Convective overshoot parameter f
+        self.CO_f0 = CO_f0 # CO parameter f0
         
         # CSM parameters
-        self.csmtime = csmtime
-        self.csmrate = csmrate
-        self.csmvelo = csmvelo
+        self.csmtime = csmtime # Mass loss duration
+        self.csmrate = csmrate # Mass loss rate
+        self.csmvelo = csmvelo # Velocity of lost mass
+        
+        # Optimization
         self.CSMOptimize = CSMOptimize
+        self.ProgOptimize = ProgOptimize 
         
         # Others
-        self.GridTag = gridtag
-        
-        # Select pre-CC model based upon mass
-        if self.mass <= 18:
-            self.TheSourceDir = SourceDir_12M
-        else:
-            self.TheSourceDir = SourceDir_20M
+        self.GridTag = gridtag # Name for exporting data
+        self.TheSourceDir = SourceDir # Which source directory
         
         dirname =(
         f"M{self.mass}_" # Mass
@@ -151,6 +176,9 @@ class Sim:
         f"Z{self.metallicity}_" # Metallicity
         f"He{self.HeFrac}_" # Helium mass fraction
         f"Eta{self.windscalar}_" # Wind scaling factor
+        f"AlH{self.alpha_H}_" # MLT mixing alpha for H-rich regions
+        f"AlC{self.alpha_noH}" # MLT mixing alpha for H-poor regions
+        f"AlSC{self.alpha_semiconv}" # Semiconvection mixing parameter
         f"WT{self.csmtime}_" # Mass loss duration
         f"WR{self.csmrate}_" # Mass loss rate
         f"WV{self.csmvelo}" # Velocity of lost mass
@@ -159,12 +187,15 @@ class Sim:
         self.simdir = os.path.join(GridDir, dirname)
         
         self.premodname =(
-        f"M{self.mass}_" # Mass
-        f"Z{self.metallicity}_" # Metallicity
-        f"He{self.HeFrac}_" # Helium mass fraction
-        f"Eta{self.windscalar}" # Wind scaling factor
-        f"AlMLT{self.alpha_MLT}" # MLT parameter
-        f"AlSC{self.alpha_semiconv}" # Semiconvection parameter
+        f"M{self.mass}_"
+        f"Z{self.metallicity}_"
+        f"He{self.HeFrac}_"
+        f"Eta{self.windscalar}_"
+        f"AlH{self.alpha_H}_"
+        f"AlC{self.alpha_noH}_"
+        f"AlSC{self.alpha_semiconv}_"
+        f"COf{self.CO_f}_"
+        f"COff{self.CO_f0}"
         ".mod"
         )
         
@@ -329,11 +360,16 @@ class Sim:
             self.windscalar
             )
         
-        # Mixing length + Ledoux criterion
+        # Mixing lengths for MLT + semiconvection
         ConfigInlist(
             os.path.join(self.simdir, "PreCC/inlist_common"),
-            96,
-            self.alpha_MLT
+            105,
+            self.alpha_H
+            )
+        ConfigInlist(
+            os.path.join(self.simdir, "PreCC/inlist_common"),
+            106,
+            self.alpha_noH
             )
         ConfigInlist(
             os.path.join(self.simdir, "PreCC/inlist_common"),
@@ -342,14 +378,38 @@ class Sim:
             )
         ConfigInlist(
             os.path.join(self.simdir, "PostCC/inlist_common"),
-            88,
-            self.alpha_MLT
+            97,
+            self.alpha_H
+            )
+        ConfigInlist(
+            os.path.join(self.simdir, "PostCC/inlist_common"),
+            98,
+            self.alpha_noH
             )
         ConfigInlist(
             os.path.join(self.simdir, "PostCC/inlist_common"),
             92,
             self.alpha_semiconv
             )
+        
+        # Convective overshoot
+        
+        f_lines = [148, 156, 164]
+        f0_lines = [149, 157, 165]
+        
+        for f in f_lines:
+            ConfigInlist(
+                os.path.join(self.simdir, "PreCC/inlist_common"),
+                f,
+                self.CO_f
+                )
+            
+        for f0 in f0_lines:
+            ConfigInlist(
+                os.path.join(self.simdir, "PreCC/inlist_common"),
+                f0,
+                self.CO_f0
+                )
         
         ### Configure inlists for the post-CC MESA model
         
@@ -449,17 +509,17 @@ class Sim:
             process = subprocess.Popen(f"./{filename}", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
     
             # This prints the output as it comes from the script
-            MesaLogger.info("------------- Beginning MESA simulation -------------")
+            MesaLogger.info(f"{'~'*10} Beginning MESA simulation {'~'*10}")
             for line in process.stdout:
                 MesaLogger.info(line)
             
             for line in process.stderr:
                 MesaLogger.error(line)
                 
-            MesaLogger.info("------------- Finished MESA simulation -------------")
+            MesaLogger.info(f"{'~'*10} Finished MESA simulation {'~'*10}")
             
         def RunShellWithStella(filename):
-            StellaLogger.info("------------- Beginning Stella simulation -------------")
+            StellaLogger.info(f"{'~'*10} Beginning Stella simulation {'~'*10}")
             process = subprocess.Popen(f"./{filename}", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, shell=True)
             # This prints the output as it comes from the script
             for line in process.stdout:
@@ -469,7 +529,7 @@ class Sim:
             for line in process.stderr:
                 StellaLogger.error(line)
             
-            StellaLogger.info("------------- Finished Stella simulation -------------")
+            StellaLogger.info(f"{'~'*10} Finished Stella simulation {'~'*10}")
             
         if simtype == "PreCC":
             # Run the shell script
@@ -698,117 +758,3 @@ class TimeoutException(Exception):
 
 def signal_handler(signum, frame):
     raise TimeoutException("Stage timed out")
-
-r"""
-# Import params from simlist
-Simlist = pd.read_csv(os.path.join(InputDir, SimlistName))
-
-Simarr = np.array([])
-
-logger.info("Imported simlist")
-
-# Iterate over every simulation parameter set in the simlist
-for index, row in Simlist.iterrows():
-    
-    # Non-CSM parameters
-    mass = row["mass"]
-    energy = row["energy"]
-    Ni56 = row["ni56"]
-    metallicity = row["metallicity"]
-    HeFrac = row["hefrac"]
-    windscalar = row["windscalar"]
-    alpha_MLT = row["alpha_MLT"]
-    alpha_semiconv = row["alpha_semiconv"]
-    ProgOptimize = True if row["progoptimize"] == 1 else False
-    
-    # CSM parameters
-    csmvelo = row["csmvelo"]
-    csmrate = row["csmrate"]
-    csmtime = row["csmtime"]
-    CSMOptimize = True if row["csmoptimize"] == 1 else False
-    
-    # Grid tag
-    GridTag = row["gridtag"]
-    
-    signal.signal(signal.SIGALRM, signal_handler)
-    
-    # Timeout after the timeout time
-    signal.alarm(TimeoutTime)
-    
-    try:
-        sim1 = Sim(mass, energy, Ni56, windscalar, alpha_MLT, alpha_semiconv, metallicity, HeFrac, csmtime, csmrate, csmvelo, CSMOptimize, ProgOptimize, GridTag)
-        
-        Simarr = np.append(Simarr, sim1)
-        
-        sim1.MakeSource()
-            
-        sim1.CreateSim()
-        logger.info(f"Created simulation with index {index}")
-        
-        # If CSM optimization is off:
-        if CSMOptimize != True:
-            # And if progenitor optimization is off, run PreCC.  Otherwise, skip it since we're optimizing with CSM or the progenitor
-            if ProgOptimize != True:
-                logger.info("------------- Running pre-core-collapse model -------------")
-                sim1.RunSim("PreCC")
-                logger.info("------------- Finished pre-core-collapse model -------------")
-        
-        if ProgOptimize == True:
-            logger.info("Progenitor optimization is true.  Skipping pre-CC modeling.")
-        logger.info("------------- Running post-core-collapse model -------------")
-        sim1.RunSim("PostCC")
-        logger.info("------------- Finished pre-core-collapse model -------------")
-    except Exception as err:
-        logger.error(f"An exception occured while running simulation with index {index}; Exception: {err}")
-    finally:
-        # Disable the alarm
-        signal.alarm(0)
-        del sim1
-
-logger.info("------------- Finished MESA simulations -------------")
-
-# Run the Stella sims in parallel
-results = []
-Executor = ProcessPoolExecutor
-
-logger.info("------------- Beginning Stella simulations ------------")
-
-with Executor(max_workers=SimThreads) as executor:
-    # Submit tasks for each instance
-    futures = {executor.submit(partial(sim.RunSim, "Stella")) for sim in Simarr}
-
-    for future in as_completed(futures):
-        try:
-            result = future.result()
-            logger.info("Finished Stella simulation")
-            results.append(result)
-        except Exception as E:
-            logger.info(f"Stella generated an exception: {E}")
-            logger.info("Continuing with next Stella simulation...")
-
-for sim in Simarr:
-    try:
-        sim.ExportPhotometry()
-    except Exception as err:
-        logger.warning(f"Photometry exporting threw an exception: {err}")
-    try:
-        sim.ExportProfile()
-    except Exception as err:
-        logger.warning(f"Profile exporting threw an exception: {err}")
-
-
-logger.info("------------- Finished Stella simulations.  Done! -------------")
-
-
-"""
-
-
-
-
-
-
-
-
-
-
-

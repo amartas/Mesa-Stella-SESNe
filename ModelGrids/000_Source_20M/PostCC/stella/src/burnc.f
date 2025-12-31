@@ -1,3 +1,0 @@
-      subroutineburnc
-      return
-      end

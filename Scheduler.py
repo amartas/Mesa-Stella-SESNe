@@ -2,7 +2,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import numpy as np
-from MesaStellaCore import Sim, logger, InputDir, SimlistName, NumThreads, SimThreads
+from MesaStellaCore import Sim, logger, InputDir, SimlistName, NumThreads, SimThreads, SimMemory, TotMemory
 from concurrent.futures import ProcessPoolExecutor
 import time
 import os
@@ -190,7 +190,7 @@ def RunStella(sim):
     sim.ExportProfile()
 
 def RunExplosion(sims):
-    logger.info("------------- Beginning Stella simulations ------------")
+    logger.info(f"{'~'*10} Beginning Stella simulations {'~'*10}")
 
     results = []
     with ProcessPoolExecutor(max_workers=NumThreads) as executor:
@@ -204,13 +204,13 @@ def RunExplosion(sims):
                 logger.error(f"Stella/extract failed for {sim.dirname}: {exc}")
                 results.append(exc)
 
-    logger.info("------------- Finished Stella simulations. Done! -------------")
+    logger.info(f"{'~'*10} Finished Stella simulations. Done! {'~'*10}")
 
 
 
 sims = RunMesaScheduled(
-        total_memory_gb=100,
-        per_sim_memory_gb=8,
+        total_memory_gb=TotMemory,
+        per_sim_memory_gb=SimMemory,
         total_threads=NumThreads,
         per_sim_threads=SimThreads,
     )

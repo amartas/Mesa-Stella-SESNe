@@ -85,28 +85,50 @@ def BuildSims():
     sims = []
 
     for _, row in df.iterrows():
-        # Non-CSM parameters
         mass = row["mass"]
+        metallicity = row["metallicity"]
+        hefrac = row["hefrac"]
+        windscalar = row["windscalar"]
+        
         energy = row["energy"]
         Ni56 = row["ni56"]
-        metallicity = row["metallicity"]
-        HeFrac = row["hefrac"]
-        windscalar = row["windscalar"]
-        alpha_MLT = row["alpha_MLT"]
+        
+        alpha_H = row["alpha_H"]
+        alpha_noH = row["alpha_noH"]
         alpha_semiconv = row["alpha_semiconv"]
-        ProgOptimize = bool(row["progoptimize"])
-
-        # CSM
+        
+        CO_mthd = row["CO_mthd"]
+        CO_f = row["CO_f"]
+        CO_f0 = row["CO_f0"]
+        
         csmvelo = row["csmvelo"]
         csmrate = row["csmrate"]
         csmtime = row["csmtime"]
+        
+        ProgOptimize = bool(row["progoptimize"])
         CSMOptimize = bool(row["csmoptimize"])
 
         GridTag = row["gridtag"]
 
-        sim = Sim(mass, energy, Ni56, windscalar, alpha_MLT, alpha_semiconv,
-                  metallicity, HeFrac, csmtime, csmrate, csmvelo,
-                  CSMOptimize, ProgOptimize, GridTag)
+        sim = Sim(mass,
+                  windscalar,
+                  metallicity,
+                  hefrac,
+                  energy,
+                  Ni56,
+                  alpha_noH,
+                  alpha_H,
+                  alpha_semiconv,
+                  CO_mthd,
+                  CO_f,
+                  CO_f0,
+                  csmtime,
+                  csmrate,
+                  csmvelo,
+                  CSMOptimize,
+                  ProgOptimize,
+                  GridTag
+                  )
 
         sim.MakeSource()
         sim.CreateSim()

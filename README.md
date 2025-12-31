@@ -14,7 +14,7 @@ Once you have Docker installed, clone this repo to a directory of your choice wi
 
 ### How to create model grids
 
-The primary text editor is nano.  Use ```nandddddddddddo <file name>``` to open the editor.
+The primary text editor is nano.  Use ```nano <file name>``` to open the editor.
 
 #### Simlist
 To define your grid, you need the actual parameters of the models you wish to create, formatted as a CSV.  The CSV must have the following columns:

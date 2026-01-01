@@ -107,6 +107,7 @@ def BuildSims():
         
         ProgOptimize = bool(row["progoptimize"])
         CSMOptimize = bool(row["csmoptimize"])
+        DoPre = bool(row["do_pre"])
 
         GridTag = row["gridtag"]
 
@@ -127,6 +128,7 @@ def BuildSims():
                   csmvelo,
                   CSMOptimize,
                   ProgOptimize,
+                  DoPre,
                   GridTag
                   )
 
@@ -161,12 +163,12 @@ def RunMesaScheduled(
         logger.info(f"Starting {stage} for {sim.dirname}")
         sim.RunSim(stage)
         logger.info(f"Finished {stage} for {sim.dirname}")
-
+    
     for sim in sims:
         # per sim resource consumption
         sim_mem = getattr(sim, "mesa_mem_gb", per_sim_memory_gb)
         sim_threads = getattr(sim, "mesa_threads", per_sim_threads)
-
+        
         if not sim.CSMOptimize and not sim.ProgOptimize:
             # Need PreCC, then PostCC
             pre_future = scheduler.submit(
@@ -184,8 +186,9 @@ def RunMesaScheduled(
                     sim=sim, stage="PostCC"
                 )
                 all_futures.append(post_future)
-
-            pre_future.add_done_callback(schedule_postcc)
+            
+            if not sim.DoPre:
+                pre_future.add_done_callback(schedule_postcc)
 
         else:
             post_future = scheduler.submit(
@@ -204,7 +207,10 @@ def RunMesaScheduled(
     scheduler.shutdown()
 
     logger.info("All MESA stages completed, ready to run Stella")
-    return sims
+    
+    # only return sims where we want to run Stella
+    cond = [~sim.doPre for sim in sims]
+    return sims[cond]
 
 def RunStella(sim):
     sim.RunSim("Stella")

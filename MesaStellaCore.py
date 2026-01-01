@@ -137,6 +137,7 @@ class Sim:
         csmvelo,
         CSMOptimize,
         ProgOptimize,
+        DoPre,
         gridtag
         ):
         
@@ -174,7 +175,8 @@ class Sim:
         
         # Optimization
         self.CSMOptimize = CSMOptimize
-        self.ProgOptimize = ProgOptimize 
+        self.ProgOptimize = ProgOptimize
+        self.DoPre = DoPre
         
         # Others
         self.GridTag = gridtag # Name for exporting data

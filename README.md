@@ -2,7 +2,7 @@
 A set of Python scripts for creating and running MESA+Stella model grids for stripped-envelope supernovae.
 
 ## How it works
-The main logic behind the gridding is ```MesaStellaCore.py```.  This script reads the configuration file ```SetupConfig.cfg``` and an input simlist (```InputFiles/simlist.csv``` by default), then creates a set of MESA and Stella simulation grids with the parameters specified within the simlist.  ```Scheduler.py``` handles running the grid, starting with the MESA simulations.  After completing the MESA sims, it runs the Stella component of the sims in parallel, each on its own thread.  Stella has limited parallelization, so this really speeds up the process.  The full output data is held within ```mesa-24.08.1/ModelGrids```, though photometry and various explosion profiles are saved to ```DataExports```.
+The main logic behind the gridding is ```MesaStellaCore.py```.  This script reads the configuration file ```SetupConfig.cfg``` and an input simlist (```InputFiles/simlist.csv``` by default), then creates a set of MESA and Stella simulation grids with the parameters specified within the simlist.  ```Scheduler.py``` handles running the grid, starting with the MESA simulations.  After completing the MESA sims, it runs the Stella component of the sims in parallel, each on its own thread.  Stella has limited parallelization, so this really speeds up the process.  The full output data are held within ```mesa-24.08.1/ModelGrids```, though photometry and various explosion profiles are saved to ```DataExports```.
 
 ## Getting Started
 
@@ -26,11 +26,12 @@ To define your grid, you need the actual parameters of the models you wish to cr
 - ```windscalar```: float, Dutch wind scaling factor $\eta$
 
 ##### Convection
-- ```alpha_MLT```: float, $\alpha_\mathrm{MLT}$, which is a parameter used in mixing length calculations
+- ```alpha_H```: float, $\alpha_{\mathrm{MLT},H}$; controls mixing in H-rich regions where $X_H\geq0.5$
+- ```alpha_noH```: float, same as ```alpha_H``` but for H-poor regions where $X_H<0.5$
 - ```alpha_semiconv```: float, $\alpha_\mathrm{sc}$, which is a parameter used for semiconvective mixing
 - ```CO_mthd```: string, either ```step```, ```exponential```, or ```none```.  See the MESA documentation on convective overshooting for details
-- ```CO_f```: float, $f_\mathrm{ov}$; controls the extent of the overshooting region in pressure scale heights
-- ```CO_f0```: float, $f_{\mathrm{ov},0}$; convective overshoot offset in pressure scale heights
+- ```CO_f```: float, $f_\mathrm{ov}$; controls the extent of the overshooting region
+- ```CO_f0```: float, $f_{\mathrm{ov},0}$; convective overshoot offset
 
 ##### Explosion
 - ```energy```: float, explosion energy ($10^{50}$ ergs)
@@ -54,7 +55,7 @@ For cases where the progenitor parameters (mass, $\eta$, metallicity, helium mas
 
 ##### CSMOptimize
 
-If you fix the progenitor and explosion properties & only vary CSM parameters, you can completely eliminate modeling prior to MESA's construction of the CSM in ```shock_part_5```.  If you enable this, you need to place the prior step's model (```shock_part_4.mod```) from a given post-core-collapse model (```PostCC```) into ```InputFiles```.  You can find this ```.mod``` file from a given model by looking at ```mesa-24.08.1/ModelGrids/<MODEL_DIR>/PostCC/shock_part_4.mod```.  **BEWARE: This will make all simulations with CSMOptimize enabled use this model - do not run multiple progenitors in the same grid with CSMOptimize enabled.**
+If you fix the progenitor and explosion properties & only vary CSM parameters, you can completely eliminate modeling prior to MESA's construction of the CSM in ```shock_part_5```.  If you enable this, you need to place the prior step's model (```shock_part_4.mod```) from a given post-core-collapse model (```PostCC```) into ```InputFiles```.  You can find this ```.mod``` file from a given model by looking at ```mesa-24.08.1/ModelGrids/<MODEL_DIR>/PostCC/shock_part_4.mod```.  **BEWARE: This will make all simulations with CSMOptimize enabled use this model.  Do NOT run multiple progenitors in the same grid with CSMOptimize enabled.**
 
 #### Config
 
@@ -62,6 +63,6 @@ Open ```SetupConfig.cfg``` with the text editor of your choice and fill in your 
 
 ### Running the models
 
-You should have everything set up now!  All you need to do now is run ```Scheduler.py``` in the Python environment from earlier, and it'll start chugging along!  Explosion profiles and the light curves are exported to ```DataExports```, but all the output data is stored in subdirectories within ```mesa-24.08.1/ModelGrids```.  Go read the MESA documentation to learn to read it!  Make sure to move these sims somewhere else *outside* the parent directory, as those sims will *not* be overwritten if you are rerunning with identical input parameters.
+You should have everything set up now!  All you need to do now is run ```Scheduler.py``` in the Python environment from earlier, and it'll start chugging along!  Explosion profiles and the light curves are exported to ```DataExports```, but all the output data is stored in subdirectories within ```mesa-24.08.1/ModelGrids```.  Go read the MESA documentation to learn to read it!  Make sure to move these sims somewhere else *outside* the parent directory, as those sims will *not* be overwritten if you are rerunning with identical input parameters.  You can copy data to the host machine from the Docker container using ```docker cp <container>:/root/MESA/<file> <host filepath>```.
 
 

@@ -64,6 +64,11 @@ RUN cd ~/MESA && \
     chmod -R 777 $MESA_DIR/ModelGrids/000* && \
     chmod +x ~/MESA/clean
 
+# Clean up
+RUN cd ~ && \
+    rm -rf Setup && \
+    rm 'mesa-24.08.1.zip?download=1'
+
 # Add the interactive requirement back
 RUN sed -i '1i [ -z "$PS1" ] && return' $HOME/.bashrc
 

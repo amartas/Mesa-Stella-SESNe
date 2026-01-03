@@ -209,7 +209,7 @@ def RunMesaScheduled(
     logger.info("All MESA stages completed, ready to run Stella")
     
     # only return sims where we want to run Stella
-    cond = [~sim.DoPre for sim in sims]
+    cond = np.array([not sim.DoPre for sim in sims]).astype(bool)
     return sims[cond]
 
 def RunStella(sim):

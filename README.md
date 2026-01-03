@@ -46,6 +46,7 @@ To define your grid, you need the actual parameters of the models you wish to cr
 - ```progoptimize```: logical 1 or 0, enables progenitor optimization
 - ```csmoptimize```: logical 1 or 0, enables CSM optimization
 - ```gridtag```: string, identifier for different sets of models; exported data will be saved under this name in ```DataExports```
+- ```do_pre```: logical 1 or 0, if 1 then only the pre-CC stage will be run.  0 runs the full evolution
 
 There can be no NaN or empty values in the CSV.
 

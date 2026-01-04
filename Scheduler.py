@@ -210,6 +210,7 @@ def RunMesaScheduled(
     
     # only return sims where we want to run Stella
     cond = np.array([not sim.DoPre for sim in sims]).astype(bool)
+    sims = np.array(sims)
     return sims[cond]
 
 def RunStella(sim):

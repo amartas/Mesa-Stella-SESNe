@@ -15,58 +15,6 @@ import re
 import h5py
 from scipy.optimize import curve_fit as curve_fit
 
-
-
-### Set up logging
-
-Logfiles = ["Logs/Latest.log", "Logs/MESA.log", "Logs/Stella.log"]
-
-# Check if any of the log files exist
-if any(os.path.exists(log) for log in Logfiles):
-    # Create a timestamp in year-month-day_hms format
-    timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
-    archive_dir = f"Logs/Archive/{timestamp}"
-    os.makedirs(archive_dir, exist_ok=True)
-
-    # Move existing logs into the archive directory
-    for log in Logfiles:
-        if os.path.exists(log):
-            shutil.move(log, archive_dir)
-
-# Primary logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO) # Minimum level passed to console
-
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
-
-file_handler = logging.FileHandler("Logs/Latest.log", mode="w")
-file_handler.setLevel(logging.INFO)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
-# MESA and Stella logs
-
-MesaLogger = logging.getLogger("MESA")
-MesaLogger.propagate = False
-MesaLogger.setLevel(logging.INFO)
-MesaFileHandler = logging.FileHandler("Logs/MESA.log", mode="w")
-MesaFileHandler.setLevel(logging.INFO)
-MesaFileHandler.setFormatter(formatter)
-MesaLogger.addHandler(MesaFileHandler)
-
-StellaLogger = logging.getLogger("Stella")
-StellaLogger.propagate = False
-StellaLogger.setLevel(logging.INFO)
-StellaFileHandler = logging.FileHandler("Logs/Stella.log", mode="w")
-StellaFileHandler.setLevel(logging.INFO)
-StellaFileHandler.setFormatter(formatter)
-StellaLogger.addHandler(StellaFileHandler)
-
 ###
 
 # Define main directories
@@ -216,8 +164,58 @@ class Sim:
         ".mod"
         )
         
-        logger.info(f"Created Sim instance with name {dirname}")
-        logger.info(f"CSM optimization is: {self.CSMOptimize}")
+        ### Set up logging
+
+        Logfiles = [f"Logs/Sim_{self.dirname}.log", f"Logs/MESA_{self.dirname}.log", f"Logs/Stella_{self.dirname}.log"]
+
+        # Check if any of the log files exist
+        if any(os.path.exists(log) for log in Logfiles):
+            # Create a timestamp in year-month-day_hms format
+            timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
+            archive_dir = f"Logs/Archive/{timestamp}"
+            os.makedirs(archive_dir, exist_ok=True)
+
+            # Move existing logs into the archive directory
+            for log in Logfiles:
+                if os.path.exists(log):
+                    shutil.move(log, archive_dir)
+
+        # Primary logger
+        self.SimLogger = logging.getLogger(__name__)
+        self.SimLogger.setLevel(logging.INFO)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO) # Minimum level passed to console
+
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(formatter)
+        self.SimLogger.addHandler(console_handler)
+
+        file_handler = logging.FileHandler(f"Logs/Sim_{self.dirname}.log", mode="w")
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(formatter)
+        self.SimLogger.addHandler(file_handler)
+
+        # MESA and Stella logs
+
+        self.MesaLogger = logging.getLogger("MESA")
+        self.MesaLogger.propagate = False
+        self.MesaLogger.setLevel(logging.INFO)
+        MesaFileHandler = logging.FileHandler(f"Logs/MESA_{self.dirname}.log", mode="w")
+        MesaFileHandler.setLevel(logging.INFO)
+        MesaFileHandler.setFormatter(formatter)
+        self.MesaLogger.addHandler(MesaFileHandler)
+
+        self.StellaLogger = logging.getLogger("Stella")
+        self.StellaLogger.propagate = False
+        self.StellaLogger.setLevel(logging.INFO)
+        StellaFileHandler = logging.FileHandler(f"Logs/Stella_{self.dirname}.log", mode="w")
+        StellaFileHandler.setLevel(logging.INFO)
+        StellaFileHandler.setFormatter(formatter)
+        self.StellaLogger.addHandler(StellaFileHandler)
+        
+        self.SimLogger.info(f"Created Sim instance with name {dirname}")
+        self.SimLogger.info(f"CSM optimization is: {self.CSMOptimize}")
         
     def MakeSource(self):
         """Creates source shell scripts for running the make and run files later on"""
@@ -298,7 +296,7 @@ class Sim:
         fp = os.path.join(self.TheSourceDir, "PostCC/stella/run_stella.sh")
         UpdateBlock(fp, env2)
         
-        logger.info("Updated source shell scripts")
+        self.SimLogger.info("Updated source shell scripts")
 
     def CreateSim(self):
         """Creates simulation directory with MESA and Stella"""
@@ -313,7 +311,7 @@ class Sim:
             # Write the lines back to the inlist
             with open(filepath, 'w') as file:
                 file.writelines(lines)
-            logger.info(f"Set line {line} in file '{filepath}' to {value}")
+            self.SimLogger.info(f"Set line {line} in file '{filepath}' to {value}")
         
         # Copy source to simdir
         shutil.copytree(self.TheSourceDir,
@@ -326,7 +324,7 @@ class Sim:
                         os.path.join(self.simdir, "PostCC/shock_part4.mod")
                         )
             
-            logger.info("Copied CSM acclerator model")
+            self.SimLogger.info("Copied CSM acclerator model")
         # If progenitor optimization is true, check if a progenitor model has already been built.  If so, use it
         if self.ProgOptimize == True:
             premod_path = os.path.join(ProgOptimizeDir, self.premodname)
@@ -334,7 +332,7 @@ class Sim:
                 shutil.copy(premod_path,
                             os.path.join(self.simdir, "PostCC/pre_ccsn.mod")
                             )
-                logger.info(f"Copied progenitor acclerator model '{self.premodname}'")
+                self.SimLogger.info(f"Copied progenitor acclerator model '{self.premodname}'")
 
 
         ### Configure inlist(s) for the pre-CC MESA model
@@ -524,7 +522,7 @@ class Sim:
                 0
                 )
         
-        logger.info("Updated inlists")
+        self.SimLogger.info("Updated inlists")
         
     def RunSim(self, simtype):
         """Runs a simulation of a given type (PreCC, PostCC, Stella)"""
@@ -533,34 +531,34 @@ class Sim:
             process = subprocess.Popen(f"./{filename}", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
     
             # This prints the output as it comes from the script
-            MesaLogger.info(f"{'~'*10} Beginning MESA simulation {'~'*10}")
+            self.MesaLogger.info(f"{'~'*10} Beginning MESA simulation {'~'*10}")
             for line in process.stdout:
-                MesaLogger.info(line)
+                self.MesaLogger.info(line)
             
             for line in process.stderr:
-                MesaLogger.error(line)
+                self.MesaLogger.error(line)
                 
-            MesaLogger.info(f"{'~'*10} Finished MESA simulation {'~'*10}")
+            self.MesaLogger.info(f"{'~'*10} Finished MESA simulation {'~'*10}")
             
         def RunShellWithStella(filename):
-            StellaLogger.info(f"{'~'*10} Beginning Stella simulation {'~'*10}")
+            self.StellaLogger.info(f"{'~'*10} Beginning Stella simulation {'~'*10}")
             process = subprocess.Popen(f"./{filename}", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, shell=True)
             # This prints the output as it comes from the script
             for line in process.stdout:
-                StellaLogger.info(line)
+                self.StellaLogger.info(line)
                 
             
             for line in process.stderr:
-                StellaLogger.error(line)
+                self.StellaLogger.error(line)
             
-            StellaLogger.info(f"{'~'*10} Finished Stella simulation {'~'*10}")
+            self.StellaLogger.info(f"{'~'*10} Finished Stella simulation {'~'*10}")
             
         if simtype == "PreCC":
             # Run the shell script
-            logger.info("Beginning pre-core-collapse simulation")
+            self.SimLogger.info("Beginning pre-core-collapse simulation")
             os.chdir(os.path.join(self.simdir, "PreCC")) # This is necessary for MESA's rn script to run properly
             RunShellWithMESA("run_mesa.sh")
-            logger.info("Finished pre-core-collapse simulation")
+            self.SimLogger.info("Finished pre-core-collapse simulation")
             # This copies the output from the pre-CC model to the post-CC model
             
             shutil.copyfile(
@@ -568,31 +566,31 @@ class Sim:
                 os.path.join(self.simdir, "PostCC/pre_ccsn.mod")
                 )
             
-            logger.info("Copied pre-core-collapse model to the post-core-collapse simulation")
+            self.SimLogger.info("Copied pre-core-collapse model to the post-core-collapse simulation")
             
             shutil.copyfile(
                 os.path.join(self.simdir, "PreCC/final.mod"),
                 os.path.join(ProgOptimizeDir, self.premodname)
                 )
             
-            logger.info("Saved pre-core-collapse model to ProgOptimize in case we can use it later")
+            self.SimLogger.info("Saved pre-core-collapse model to ProgOptimize in case we can use it later")
 
         elif simtype == "PostCC":
             # Choose to run optimized method or not
             if self.CSMOptimize == True:
-                logger.info("Beginning post-core-collapse simulation with optimization")
+                self.SimLogger.info("Beginning post-core-collapse simulation with optimization")
                 os.chdir(os.path.join(self.simdir, "PostCC"))
                 RunShellWithMESA("run_mesa_optimized.sh")
             else:
-                logger.info("Beginning post-core-collapse simulation without optimization")
+                self.SimLogger.info("Beginning post-core-collapse simulation without optimization")
                 os.chdir(os.path.join(self.simdir, "PostCC"))
                 RunShellWithMESA("run_mesa.sh")
             
-            logger.info("Finished post-core-collapse simulation")
+            self.SimLogger.info("Finished post-core-collapse simulation")
                 
         elif simtype == "Stella":
             
-            logger.info("Beginning Stella simulation")
+            self.SimLogger.info("Beginning Stella simulation")
             os.chdir(os.path.join(self.simdir, "PostCC"))
             
             # Copy MESA's output to Stella
@@ -604,10 +602,10 @@ class Sim:
             
             RunShellWithStella("run_stella.sh")
             
-            logger.info("Finished Stella simulation")
+            self.SimLogger.info("Finished Stella simulation")
     
         else:
-            logger.error(f"Invalid simulation type '{simtype}' was passed to RunSim")
+            self.SimLogger.error(f"Invalid simulation type '{simtype}' was passed to RunSim")
             raise InvalidSimType("Invalid simulation type - is it 'PreCC', 'PostCC', or 'Stella'?")
     
     def ExportProfile(self, homologous=False):
@@ -699,7 +697,7 @@ class Sim:
         fn = os.path.join(ExportDir, mname)
         
         if os.path.exists(fn):
-            logger.warning(f"The h5 file {fn} already exists, I will skip and not overwrite")
+            self.SimLogger.warning(f"The h5 file {fn} already exists, I will skip and not overwrite")
             return
         
         f = h5py.File(fn, mode="a")
@@ -743,7 +741,7 @@ class Sim:
             for col in cols[1:]:
                 f[col][i, :] = df[col].to_numpy()
         
-        logger.info(f"Exported {self.simdir} to {fn}")
+        self.SimLogger.info(f"Exported {self.simdir} to {fn}")
         
     def ExportPhotometry(self):
         datapath = os.path.join(self.simdir, "PostCC/stella/res/mesa.tt")
@@ -773,9 +771,9 @@ class Sim:
             
             fpfinal = os.path.join(ExportDir, f"Phot_{self.dirname}.csv")
             data.to_csv(fpfinal)
-            logger.info(f"Exported photometry from '{self.simdir}'")
+            self.SimLogger.info(f"Exported photometry from '{self.simdir}'")
         else:
-            logger.error("An error occured within ExportPhotometry; the data header may not have been found")
+            self.SimLogger.error("An error occured within ExportPhotometry; the data header may not have been found")
 
 class TimeoutException(Exception):
     pass

@@ -2,10 +2,45 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import numpy as np
-from MesaStellaCore import Sim, logger, InputDir, SimlistName, NumThreads, SimThreads, SimMemory, TotMemory
+from MesaStellaCore import Sim, InputDir, SimlistName, NumThreads, SimThreads, SimMemory, TotMemory
 from concurrent.futures import ProcessPoolExecutor
 import time
 import os
+import shutil
+import logging
+
+# Set up logging for scheduler
+timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
+archive_dir = f"Logs/Archive/{timestamp}"
+os.makedirs(archive_dir, exist_ok=True)
+
+Logfiles = ["Logs/LatestSchedulerLog.log"]
+if any(os.path.exists(log) for log in Logfiles):
+    # Create a timestamp in year-month-day_hms format
+    timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
+    archive_dir = f"Logs/Archive/{timestamp}"
+    os.makedirs(archive_dir, exist_ok=True)
+
+    # Move existing logs into the archive directory
+    for log in Logfiles:
+        if os.path.exists(log):
+            shutil.move(log, archive_dir)
+            
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO) # Minimum level passed to console
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+file_handler = logging.FileHandler("Logs/LatestSchedulerLog.log", mode="w")
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 
 class ResourceScheduler:
     def __init__(self, mem_limit, thread_limit, MaxWorkers=None, min_start_interval=1.0):

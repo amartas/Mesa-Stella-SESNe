@@ -19,7 +19,7 @@ from scipy.optimize import curve_fit as curve_fit
 
 # Define main directories
 MainDir = os.path.dirname(os.path.realpath(__file__))
-GridDir = os.path.join(MainDir, "mesa-24.08.1/ModelGrids/")
+GridDir = os.path.join(MainDir, "ModelGrids/")
 ProgOptimizeDir = os.path.join(MainDir, "ProgOptimize")
 SourceDir = os.path.join(GridDir, "000_Source")
 #SourceDir_20M = os.path.join(GridDir, "000_Source_20M")
@@ -246,7 +246,7 @@ class Sim:
             with open(fp, "w", encoding="utf-8") as f:
                 f.writelines(lines)
         
-        mesadir = os.path.join(MainDir, "mesa-24.08.1")
+        mesadir = os.path.join(MainDir, "mesa-25.12.1")
     
         if User == "root":  
             env = (

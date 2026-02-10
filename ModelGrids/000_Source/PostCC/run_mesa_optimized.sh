@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # BEGIN BLOCK
-export MESA_DIR="/root/MESA/mesa-24.08.1"
-export OMP_NUM_THREADS=30
-export MESASDK_ROOT="/root/mesasdk"
+export MESA_DIR="/dark/hal/git/Mesa-Stella-SESNe/mesa-25.12.1"
+export OMP_NUM_THREADS=2
+export MESASDK_ROOT="/dark/hal/usr/mesasdk/"
 source "$MESASDK_ROOT/bin/mesasdk_init.sh"
 export PATH="$PATH:$MESA_DIR/scripts/shmesa"
 # END BLOCK

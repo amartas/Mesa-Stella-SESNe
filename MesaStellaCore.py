@@ -324,7 +324,7 @@ class Sim:
                         os.path.join(self.simdir, "PostCC/shock_part4.mod")
                         )
             
-            self.SimLogger.info("Copied CSM acclerator model")
+            self.SimLogger.info("Copied CSM accelerator model")
         # If progenitor optimization is true, check if a progenitor model has already been built.  If so, use it
         if self.ProgOptimize == True:
             premod_path = os.path.join(ProgOptimizeDir, self.premodname)
@@ -332,7 +332,10 @@ class Sim:
                 shutil.copy(premod_path,
                             os.path.join(self.simdir, "PostCC/pre_ccsn.mod")
                             )
-                self.SimLogger.info(f"Copied progenitor acclerator model '{self.premodname}'")
+                self.SimLogger.info(f"Copied progenitor accelerator model '{self.premodname}'")
+            else:
+                self.SimLogger.error(f"Progenitor accelerator model '{self.premodname}' does not exist.  Failing this model and continuing...")
+                raise ValueError("Progenitor accelerator model DNE")
 
 
         ### Configure inlist(s) for the pre-CC MESA model

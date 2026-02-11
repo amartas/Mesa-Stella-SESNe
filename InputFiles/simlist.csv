@@ -1,2 +1,2 @@
 ,mass,windscalar,alpha_H,alpha_noH,alpha_semiconv,metallicity,hefrac,energy,ni56,csmvelo,csmrate,csmtime,progoptimize,csmoptimize,gridtag,CO_mthd,CO_f,CO_f0,do_pre
-0,17,0.0,3,1.5,10,0.0142,0.270,4,0.01,0,0,0,0,0,MLT_Testing,exponential,0.02,0.005,0
+0,20,0.0,3,1.5,10,0.0142,0.270,3,0.01,0,0,0,1,0,MLT_Testing,exponential,0.02,0.005,0

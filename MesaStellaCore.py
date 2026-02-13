@@ -21,6 +21,7 @@ from scipy.optimize import curve_fit as curve_fit
 MainDir = os.path.dirname(os.path.realpath(__file__))
 GridDir = os.path.join(MainDir, "ModelGrids/")
 ProgOptimizeDir = os.path.join(MainDir, "ProgOptimize")
+CsmOptimizeDir = os.path.join(MainDir, "CsmOptimize")
 SourceDir = os.path.join(GridDir, "000_Source")
 #SourceDir_20M = os.path.join(GridDir, "000_Source_20M")
 DataDir = os.path.join(MainDir, "DataExports")
@@ -152,6 +153,22 @@ class Sim:
         
         self.premodname =(
         f"M{self.mass}_"
+        f"Z{self.metallicity}_"
+        f"He{self.hefrac}_"
+        f"Eta{self.windscalar}_"
+        f"AlH{self.alpha_H}_"
+        f"AlC{self.alpha_noH}_"
+        f"AlSC{self.alpha_semiconv}_"
+        f"COf{self.CO_f}_"
+        f"COff{self.CO_f0}_"
+        f"COMTH{self.mthdint}"
+        ".mod"
+        )
+
+        self.csmmodname =(
+        f"M{self.mass}_"
+        f"E{self.energy}_"
+        f"Ni{self.ni56}_"
         f"Z{self.metallicity}_"
         f"He{self.hefrac}_"
         f"Eta{self.windscalar}_"
@@ -588,6 +605,14 @@ class Sim:
                 self.SimLogger.info("Beginning post-core-collapse simulation without optimization")
                 os.chdir(os.path.join(self.simdir, "PostCC"))
                 RunShellWithMESA("run_mesa.sh")
+                ###########
+                self.SimLogger.info("Copied shock_part_4.mod  to CsmOptimize directory")
+            
+                shutil.copyfile(
+                    os.path.join(self.simdir, "PostCC/shock_part4.mod"),
+                    os.path.join(CsmOptimizeDir, self.csmmodname)
+                )
+                ###########
             
             self.SimLogger.info("Finished post-core-collapse simulation")
                 

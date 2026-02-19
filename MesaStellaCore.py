@@ -336,12 +336,24 @@ class Sim:
                         )        
         # Check if it's a CSM sim or not to configure MESA for optimized speed during directory setup
         if self.CSMOptimize == True:
-            
-            shutil.copy(os.path.join(InputDir, "PreCSM.mod"),
-                        os.path.join(self.simdir, "PostCC/shock_part4.mod")
-                        )
-            
-            self.SimLogger.info("Copied CSM accelerator model")
+            #################
+            csmmod_path = os.path.join(CsmOptimizeDir, self.csmmodname)
+            if os.path.exists(csmmod_path) == True:
+                shutil.copy(csmmod_path,
+                            os.path.join(self.simdir, "PostCC/shock_part4.mod")
+                            )
+                self.SimLogger.info(f"Copied CSM accelerator model '{self.premodname}' to  PostCC/shock_part4.mod")
+            else:
+                self.SimLogger.error(f"CSM accelerator model '{self.premodname}' does not exist.  Failing this model and continuing...")
+                raise ValueError("Progenitor accelerator model DNE")
+
+#                self.SimLogger.info(f"Copied progenitor accelerator model '{self.premodname}'")            
+            #################            
+#            shutil.copy(os.path.join(InputDir, "PreCSM.mod"),
+#                        os.path.join(self.simdir, "PostCC/shock_part4.mod")
+#                        )      
+#            self.SimLogger.info("Copied CSM accelerator model")
+
         # If progenitor optimization is true, check if a progenitor model has already been built.  If so, use it
         if self.ProgOptimize == True:
             premod_path = os.path.join(ProgOptimizeDir, self.premodname)

@@ -66,4 +66,6 @@ Open ```SetupConfig.cfg``` with the text editor of your choice and fill in your 
 
 You should have everything set up now!  All you need to do now is run ```Scheduler.py``` in the Python environment from earlier, and it'll start chugging along!  Explosion profiles and the light curves are exported to ```DataExports```, but all the output data is stored in subdirectories within ```mesa-24.08.1/ModelGrids```.  Go read the MESA documentation to learn to read it!  Make sure to move these sims somewhere else *outside* the parent directory, as those sims will *not* be overwritten if you are rerunning with identical input parameters.  You can copy data to the host machine from the Docker container using ```docker cp <container>:/root/MESA/<file> <host filepath>```.
 
+### OS distribution through Docker
+Beginning January 1, 2027, this program will not be supported in California.
 
